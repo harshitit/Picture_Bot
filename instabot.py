@@ -20,7 +20,8 @@ def get_user_id(insta_username):
   if user_info['data']:
       return user_info['data'][0]['id']
   else:
-    print 'Username NOT found\nStatus code other than 200 received!'
+    print '------Username NOT found------\nStatus code other than 200 received!'
+    return 0
 
 # this function is used to download media like image and video
 def download_post(post_id, user_posts):
@@ -55,7 +56,7 @@ def another_user_recent_post_id(insta_username):
     request_url = (BASE_URL + 'users/%s/media/recent/?access_token=%s') % (user_id,ACCESS_TOKEN)
     user_info = requests.get(request_url).json()
     user_choice = int(raw_input('Choose the type of post to download:-\n1-> Most recent post\n2-> Minimum number of likes\n3-> Maximum number of likes\n4-> Posts with certain tag\n5-> Exit\n-> '))
-    if user_id is not None:
+    if user_id > 0:
         if user_info['data']:
             if len(user_info) == 0:
                 print 'User does\'t have enough posts'

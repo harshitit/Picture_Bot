@@ -43,7 +43,7 @@ def recent_post_id():
     if user_info['meta']['code'] == 200:
         if len(user_info['data']):
             download_post(user_info['data'][0]['id'], user_info['data'])
-            print "The post was downloaded successfully!"
+            print 'The post was downloaded successfully....'
             return user_info['data'][0]['id']
         else:
             print 'Post does not exist!'
@@ -122,6 +122,42 @@ def like_post(insta_username):
     else:
         return
 
+# this function give us a list of comments
+def get_comments_list(insta_username):
+    post_id = get_media_id(username)
+    print post_id
+    if post_id is not None:
+        request_url = (BASE_URL + 'media/%s/comments?access_token=%s') % (post_id, ACCESS_TOKEN)
+        comments_info = requests.get(request_url).json()
+        if comments_info['meta']['code'] == 200:
+            if len(comments_info['data']):
+                comments_list = []
+                for index in range(len(comments_info['data'])):
+                    comment_dict = {comments_info['data'][index]['id']: comments_info['data'][index]['text']}
+                    comments_list.append(comment_dict)
+                return comments_list
+            else:
+                print 'No comments...'
+        else:
+            print 'Status code other than 200 received'
+    else:
+        return
+
+# this function is used to post a comment
+def comment_on_post(insta_username):
+    media_id = get_media_id(insta_username)
+    if media_id is not None:
+        request_url = (BASE_URL + 'media/%s/comments') % media_id
+        comment = raw_input('Enter your comment: ')
+        payload = {'access_token': ACCESS_TOKEN, 'text': comment}
+        spawn_comment = requests.post(request_url, payload).json()
+        if spawn_comment['meta']['code'] == 200:
+            print 'Your comment was posted successfully..'
+        else:
+            print 'Sorry, your comment couldn\'t be posted.'
+    else:
+        'There was an error posting your comment..\n-------TRY AGAIN-------'
+
 # main function starts here
 print '---WELCOME---\nTo PictureBot:'
 choice1=choice2=True
@@ -129,7 +165,7 @@ while choice1 == True:
     ask_to_init=int(raw_input('\nPRESS:-\n1-> Sign In\n2-> Exit\n->'))
     if ask_to_init == 1:
         while choice2==True:
-            ask_choice=int(raw_input('\nPRESS one of the following:\n1-> Show self details\n2-> Get another usedID\n3-> Download self most recent post and post ID\n4-> Download another user most recent post and post ID\n5-> Like a post\n6-> Sign Out\n-> '))
+            ask_choice=int(raw_input('\nPRESS one of the following:\n1-> Show self details\n2-> Get another usedID\n3-> Download self most recent post and post ID\n4-> Download another user most recent post and post ID\n5-> Like a post\n6-> Get list of comments\n7-> Comment on a post\n8-> Sign Out\n-> '))
             if ask_choice == 1:
                 self_info()
             elif ask_choice == 2:
@@ -140,10 +176,16 @@ while choice1 == True:
             elif ask_choice == 4:
                 another_username = raw_input('\nEnter username to get most recent postID: ')
                 another_user_recent_post_id(another_username)
-            elif ask_choice ==5:
+            elif ask_choice == 5:
                 username=raw_input('\nEnter username: ')
                 like_post(username)
             elif ask_choice == 6:
+                username = raw_input('\nEnter username: ')
+                print get_comments_list(username)
+            elif ask_choice ==7:
+                username = raw_input('\nEnter username: ')
+                comment_on_post(username)
+            elif ask_choice == 8:
                 choice2=False
             else:
                 print 'WRONG CHOICE'

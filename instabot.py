@@ -4,7 +4,7 @@ from keys import ACCESS_TOKEN
 
 BASE_URL = 'https://api.instagram.com/v1/'
 
-#this function is used the get self details
+# this function is used the get self details
 def self_info():
   request_url = (BASE_URL + 'users/self/?access_token=%s') % (ACCESS_TOKEN)
   user_info = requests.get(request_url).json()
@@ -13,15 +13,15 @@ def self_info():
   else:
     print 'Status code other than 200 received!'
 
-#this function is used to search userID with the help of username
+# this function is used to search userID with the help of username
 def get_user_id(insta_username):
   request_url = (BASE_URL + 'users/search?q=%s&access_token=%s') % (insta_username, ACCESS_TOKEN)
   user_info = requests.get(request_url).json()
   if user_info['data']:
       return user_info['data'][0]['id']
   else:
-    print '------Username NOT found------\nStatus code other than 200 received!'
-    return 0
+      print '------Username NOT found------\nStatus code other than 200 received!'
+      return 0
 
 # this function is used to download media like image and video
 def download_post(post_id, user_posts):
@@ -36,7 +36,7 @@ def download_post(post_id, user_posts):
                 url = e['videos']['standard_resolution']['url']
                 urllib.urlretrieve(url, name)
 
-#this function is used to download post and search most recent post ID
+# this function is used to download post and search most recent post ID
 def recent_post_id():
     request_url = (BASE_URL + 'users/self/media/recent/?access_token=%s') % ( ACCESS_TOKEN)
     user_info = requests.get(request_url).json()
@@ -50,7 +50,7 @@ def recent_post_id():
     else:
         print 'Status code other than 200 received!'
 
-#this function is used to download post and search another user most recent post ID
+# this function is used to download post and search another user most recent post ID
 def another_user_recent_post_id(insta_username):
     user_id=get_user_id(insta_username)
     request_url = (BASE_URL + 'users/%s/media/recent/?access_token=%s') % (user_id,ACCESS_TOKEN)
@@ -94,14 +94,42 @@ def another_user_recent_post_id(insta_username):
     else:
        print 'Status code other than 200 received:('
 
-#main function starts here
+# this is used to get insta_user postID
+def get_media_id(insta_username):
+    user_id = get_user_id(insta_username)
+    if user_id is not None:
+        request_url = (BASE_URL + 'users/%s/media/recent/?access_token=%s') % (user_id, ACCESS_TOKEN)
+        media_info = requests.get(request_url).json()
+        if media_info['meta']['code'] == 200:
+            if len(media_info['data']):
+                return media_info['data'][0]['id']
+        else:
+            return None
+    else:
+        return None
+
+# this function is used to like a post
+def like_post(insta_username):
+    media_id = get_media_id(insta_username)
+    if media_id is not None:
+        request_url = (BASE_URL + 'media/%s/likes') % (media_id)
+        payload = {'access_token': ACCESS_TOKEN}
+        post_like = requests.post(request_url, payload).json()
+        if post_like['meta']['code'] == 200:
+            print 'You\'ve successfully liked the post...'
+        else:
+            print 'Sorry! There was an error liking the post.'
+    else:
+        return
+
+# main function starts here
 print '---WELCOME---\nTo PictureBot:'
 choice1=choice2=True
 while choice1 == True:
     ask_to_init=int(raw_input('\nPRESS:-\n1-> Sign In\n2-> Exit\n->'))
     if ask_to_init == 1:
         while choice2==True:
-            ask_choice=int(raw_input('\nPRESS one of the following:\n1-> Show self details\n2-> Get another usedID\n3-> Download self most recent post and post ID\n4-> Download another user most recent post and post ID\n5-> Sign Out\n-> '))
+            ask_choice=int(raw_input('\nPRESS one of the following:\n1-> Show self details\n2-> Get another usedID\n3-> Download self most recent post and post ID\n4-> Download another user most recent post and post ID\n5-> Like a post\n6-> Sign Out\n-> '))
             if ask_choice == 1:
                 self_info()
             elif ask_choice == 2:
@@ -112,7 +140,10 @@ while choice1 == True:
             elif ask_choice == 4:
                 another_username = raw_input('\nEnter username to get most recent postID: ')
                 another_user_recent_post_id(another_username)
-            elif ask_choice == 5:
+            elif ask_choice ==5:
+                username=raw_input('\nEnter username: ')
+                like_post(username)
+            elif ask_choice == 6:
                 choice2=False
             else:
                 print 'WRONG CHOICE'
